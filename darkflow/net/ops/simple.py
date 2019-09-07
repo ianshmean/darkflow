@@ -1,6 +1,7 @@
 import tensorflow.contrib.slim as slim
 from .baseop import BaseOp
 import tensorflow as tf
+import tensorflow.contrib.slim.nets
 from distutils.version import StrictVersion
 
 class route(BaseOp):

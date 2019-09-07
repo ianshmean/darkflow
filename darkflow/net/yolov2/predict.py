@@ -91,6 +91,8 @@ def postprocess(self,net_out, im,frame_id = 0,csv_file=None,csv=None,mask = None
 			exit(1)
 		detections = []
 		scores = []
+		confianza = []
+		savedid =[]
 		for b in boxes:
 			boxResults = self.process_box(b, h, w, threshold)
 			if boxResults is None:
@@ -102,7 +104,9 @@ def postprocess(self,net_out, im,frame_id = 0,csv_file=None,csv=None,mask = None
 				detections.append(np.array([left,top,right-left,bot-top]).astype(np.float64))
 				scores.append(confidence)
 			elif self.FLAGS.tracker == "sort":
-				detections.append(np.array([left,top,right,bot]).astype(np.float64))
+				detections.append(np.array([left,top,right,bot,confidence]).astype(np.float64))
+				confianza.append(confidence)
+				
 		if len(detections) < 3  and self.FLAGS.BK_MOG:
 			detections = detections + extract_boxes(self,mask)
 
@@ -113,18 +117,35 @@ def postprocess(self,net_out, im,frame_id = 0,csv_file=None,csv=None,mask = None
 			scores = np.array(scores)
 			features = encoder(imgcv, detections.copy())
 			detections = [
-			            Detection(bbox, score, feature) for bbox,score, feature in
-			            zip(detections,scores, features)]
+						Detection(bbox, score, feature) for bbox,score, feature in
+						zip(detections,scores, features)]
 			# Run non-maxima suppression.
 			boxes = np.array([d.tlwh for d in detections])
 			scores = np.array([d.confidence for d in detections])
+			conf = 	d.confidence;
 			indices = prep.non_max_suppression(boxes, nms_max_overlap, scores)
 			detections = [detections[i] for i in indices]
 			tracker.predict()
 			tracker.update(detections)
 			trackers = tracker.tracks
 		elif self.FLAGS.tracker == "sort":
-			trackers = tracker.update(detections)
+			#print detections
+			trackers, savedid, unmatched_dets,unmatched_trks = tracker.update(detections,confidence)
+			#print trackers
+			printtracker = 1
+			if printtracker ==1: 
+				posConf = []
+				NTrackers = 0
+				for idTrackers  in trackers:
+					NDetections = 0
+					for idDetections in detections:
+						if (15 >= abs((math.ceil(detections[NDetections][0])) -( math.ceil(trackers[NTrackers][0])))) or (15 >= abs((math.ceil(detections[NDetections][1])) -( math.ceil(trackers[NTrackers][1]))))  : 
+							posConf.append(NDetections)
+						NDetections = NDetections +1
+					NTrackers = NTrackers+1
+
+		N = 0
+		#print posConf 
 		for track in trackers:
 			if self.FLAGS.tracker == "deep_sort":
 				if not track.is_confirmed() or track.time_since_update > 1:
@@ -132,13 +153,24 @@ def postprocess(self,net_out, im,frame_id = 0,csv_file=None,csv=None,mask = None
 				bbox = track.to_tlbr()
 				id_num = str(track.track_id)
 			elif self.FLAGS.tracker == "sort":
+				#N = detecciones[0]
+				
 				bbox = [int(track[0]),int(track[1]),int(track[2]),int(track[3])]
 				id_num = str(int(track[4]))
+					#for idbox in trackers:
+						#print bbox
+				if printtracker ==1: 
+					id_scores = str(confianza[posConf[N]])
+				else: 
+					id_scores = str(0)
+				N = N+1
 			if self.FLAGS.csv:
-				csv.writerow([frame_id,id_num,int(bbox[0]),int(bbox[1]),int(bbox[2])-int(bbox[0]),int(bbox[3])-int(bbox[1])])
+				csv.writerow([frame_id,id_num,int(bbox[0]),int(bbox[1]),int(bbox[2])-int(bbox[0]),int(bbox[3])-int(bbox[1]),id_scores])
 				csv_file.flush()
 			if self.FLAGS.display or self.FLAGS.saveVideo:
 				cv2.rectangle(imgcv, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),
-						        (255,255,255), thick//3)
-				cv2.putText(imgcv, id_num,(int(bbox[0]), int(bbox[1]) - 12),0, 1e-3 * h, (255,255,255),thick//6)
+					(255,255,0), thick//3)
+				cv2.putText(imgcv, id_num,(int(bbox[0]), int(bbox[1]) - 12),0, 1e-3 * h, (255,255,0),thick//6)
+				if printtracker ==1: 
+					cv2.putText(imgcv, id_scores[0:4] ,((int(bbox[2])), int(bbox[3]) - 12),0, 1e-3 * h/1.3, (255,0,255),thick//6)
 	return imgcv

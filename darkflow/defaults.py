@@ -23,7 +23,7 @@ class argHandler(dict):
         self.define('load', '', 'how to initialize the net? Either from .weights or a checkpoint, or even from scratch')
         self.define('savepb', False, 'save net and weight to a .pb file')
         self.define('gpu', 0.85, 'how much gpu (from 0.0 to 1.0)')
-        self.define('gpuName', '/gpu:0', 'GPU device name')
+        self.define('gpuName', '/gpu:1', 'GPU device name')
         self.define('lr', 1e-5, 'learning rate')
         self.define('keep',20,'Number of most recent training results to save')
         self.define('batch', 16, 'batch size')
