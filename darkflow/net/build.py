@@ -128,10 +128,15 @@ class TFNet(object):
 
 		utility = min(self.FLAGS.gpu, 1.)
 		if utility > 0.0:
+
 			self.say('GPU mode with {} usage'.format(utility))
 			cfg['gpu_options'] = tf.GPUOptions(
 				per_process_gpu_memory_fraction = utility)
 			cfg['allow_soft_placement'] = True
+			cfg['gpu_options'] = tf.GPUOptions(
+				allow_growth = True)
+
+
 		else:
 			self.say('Running entirely on CPU')
 			cfg['device_count'] = {'GPU': 0}

@@ -66,7 +66,7 @@ def _get_fps(self, frame):
     processed = self.framework.postprocess(net_out, frame)
     return timer() - start
 
-def camera(self):
+def camera(self,OutputPath):
     file = self.FLAGS.demo
     SaveVideo = self.FLAGS.saveVideo
 
@@ -102,9 +102,12 @@ def camera(self):
     'Cannot capture source'
 
     if self.FLAGS.csv :
-        f = open('{}.csv'.format(file),'w')
+       # f = open('{}.csv'.format(file),'w')
+        output_csv_file = OutputPath + 'output_{}.csv'.format( os.path.splitext( os.path.basename(file) )[0] )
+        print('Saving output video to {}...'.format(output_csv_file))
+        f = open(output_csv_file,'w')
         writer = csv.writer(f, delimiter=',')
-        writer.writerow(['frame_id', 'track_id' , 'x', 'y', 'w', 'h'])
+        writer.writerow(['frame_id', 'track_id' , 'x', 'y', 'w', 'h','conf'])
         f.flush()
     else :
         f =None
@@ -126,8 +129,12 @@ def camera(self):
             fps = 1
         else:
             fps = round(camera.get(cv2.CAP_PROP_FPS))
-        videoWriter = cv2.VideoWriter(
-            'output_{}'.format(file), fourcc, fps, (width, height))
+            #videoWriter = cv2.VideoWriter(
+            #'output_{}'.format(file), fourcc, fps, (width, height))
+            output_vid_file = OutputPath + 'output_{}'.format(os.path.basename(file))
+            print('Saving output video to {}...'.format(output_vid_file))
+            videoWriter = cv2.VideoWriter(output_vid_file, fourcc, fps, (width, height))
+
 
     # buffers for demo in batch
     buffer_inp = list()
