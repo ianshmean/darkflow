@@ -16,7 +16,7 @@ class TFNet(object):
 		'adadelta': tf.compat.v1.train.AdadeltaOptimizer,
 		'adagrad': tf.compat.v1.train.AdagradOptimizer,
 		'adagradDA': tf.compat.v1.train.AdagradDAOptimizer,
-		'momentum': tf.compat.v1.compat.train.MomentumOptimizer,
+		'momentum': tf.compat.v1.train.MomentumOptimizer,
 		'adam': tf.train.AdamOptimizer,
 		'ftrl': tf.train.FtrlOptimizer,
 		'sgd': tf.train.GradientDescentOptimizer
